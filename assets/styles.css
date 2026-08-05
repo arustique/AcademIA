@@ -217,6 +217,11 @@ table.data-table tr:nth-child(even) td{ background: var(--cream-2); }
 .paywall ul li::before{ content:"✓"; color: var(--gold-soft); position:absolute; left:0; font-weight:800; }
 
 .footer{ padding: 40px 0; text-align:center; color: var(--muted); font-size:.85rem; border-top:1px solid var(--line); }
+.footer-inner{ display:flex; flex-direction:column; align-items:center; gap:14px; }
+.footer-contact{ display:flex; gap:26px; flex-wrap:wrap; justify-content:center; }
+.footer-link{ display:inline-flex; align-items:center; gap:7px; color:var(--navy); text-decoration:none; font-weight:600; font-size:.85rem; }
+.footer-link:hover{ color:var(--gold); }
+.footer-link svg{ flex-shrink:0; }
 
 .lock-icon{ width:16px; height:16px; display:inline-block; vertical-align:-2px; }
 .top-progress{ height:3px; background: var(--line); border-radius:3px; overflow:hidden; margin: 30px 0 10px; }
