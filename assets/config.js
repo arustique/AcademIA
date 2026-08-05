@@ -7,6 +7,6 @@
 window.ACADEMIA_CONFIG = {
   SUPABASE_URL: "https://chyboeyrtoqvwgztevke.supabase.co/rest/v1/",
   SUPABASE_ANON_KEY: "sb_publishable_-_sQslwKnyrUZHYxEKINkA_JNEqx1Ri",
-  CHARIOW_CHECKOUT_URL: "https://chariow.com/VOTRE-LIEN-DE-PAIEMENT",
+  CHARIOW_CHECKOUT_URL: "https://igsdecng.mychariow.shop/prd_hae4deth",
   PRICE_LABEL: "10 000 FCFA",
 };
