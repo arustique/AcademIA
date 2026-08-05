@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code d'accès — AcademIA</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container">
+    <a href="index.html" class="brand"><span class="dot"></span>AcademIA</a>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <span class="eyebrow">Première connexion</span>
+    <h2 style="margin-top:10px;">Entrez votre code d'accès</h2>
+    <p style="color:var(--muted); font-size:.92rem; margin-bottom:24px;">
+      Ce code vous a été transmis par message privé. Il sert uniquement à la création
+      de votre compte — vous n'en aurez plus besoin ensuite.
+    </p>
+    <form id="accessForm">
+      <div class="field">
+        <label for="code">Code d'accès</label>
+        <input type="text" id="code" placeholder="Ex. ACADEMIA2026" autocomplete="off" required>
+      </div>
+      <button type="submit" class="btn btn--gold btn--block" id="submitBtn">Valider</button>
+      <div id="msg"></div>
+    </form>
+    <p class="helper">Déjà un compte ? <a href="auth.html?mode=login">Se connecter</a></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/config.js"></script>
+<script src="assets/app.js"></script>
+<script>
+  document.getElementById("accessForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const code = document.getElementById("code").value.trim();
+    const btn = document.getElementById("submitBtn");
+    const msg = document.getElementById("msg");
+    btn.disabled = true; btn.textContent = "Vérification...";
+    msg.innerHTML = "";
+
+    const { data, error } = await sb.rpc("verify_access_code", { code_input: code });
+
+    if (error || !data) {
+      msg.innerHTML = `<div class="form-msg form-msg--error">Code invalide ou expiré. Vérifiez la saisie ou contactez-nous.</div>`;
+      btn.disabled = false; btn.textContent = "Valider";
+      return;
+    }
+
+    sessionStorage.setItem("academia_access_code", code);
+    window.location.href = "auth.html?mode=signup";
+  });
+</script>
+</body>
+</html>

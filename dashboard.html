@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bibliothèque — AcademIA</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container">
+    <a href="dashboard.html" class="brand"><span class="dot"></span>AcademIA</a>
+    <div class="nav-links">
+      <span id="statusPill" style="font-size:.8rem;color:var(--muted);"></span>
+      <a href="#" onclick="signOut(); return false;" class="btn btn--ghost" style="padding:9px 18px;">Se déconnecter</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container section--tight">
+  <span class="eyebrow">Votre bibliothèque</span>
+  <h2>15 guides pratiques</h2>
+  <p style="color:var(--muted);max-width:600px;">Cliquez sur un guide pour l'ouvrir. Les guides verrouillés se débloquent tous ensemble avec l'accès complet.</p>
+
+  <div id="unlockBanner" style="display:none;margin:22px 0;">
+    <div class="callout" style="border-left-color:var(--gold);">
+      <div class="label">Débloquez les 13 guides restants</div>
+      <div class="text">Accès complet, à vie, pour 10 000 FCFA.
+        <a href="unlock.html" style="color:var(--navy);font-weight:700;">Voir l'offre →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid--3" id="moduleGrid" style="margin-top:20px;"></div>
+</div>
+
+<footer class="footer"><div class="container">AcademIA — un programme de Rustique AKODOGBO.</div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/config.js"></script>
+<script src="assets/app.js"></script>
+<script>
+(async function () {
+  const session = await requireSession();
+  if (!session) return;
+  const profile = await getProfile(session.user.id);
+
+  document.getElementById("statusPill").textContent = profile?.is_paid
+    ? "★ Accès complet"
+    : `${session.user.email}`;
+
+  if (!profile?.is_paid) {
+    document.getElementById("unlockBanner").style.display = "block";
+  }
+
+  const { data: modules, error } = await sb
+    .from("modules")
+    .select("*")
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    document.getElementById("moduleGrid").innerHTML = `<p>Impossible de charger les guides pour le moment.</p>`;
+    return;
+  }
+
+  const grid = document.getElementById("moduleGrid");
+  grid.innerHTML = modules.map((m) => {
+    const unlocked = m.is_free || profile?.is_paid;
+    const badge = m.is_free
+      ? `<span class="badge badge--free">Offert</span>`
+      : (unlocked ? "" : `<span class="badge badge--locked">🔒 Verrouillé</span>`);
+    const href = unlocked ? `module.html?slug=${encodeURIComponent(m.slug)}` : "unlock.html";
+    return `
+      <a class="module-card ${unlocked ? "" : "locked"}" href="${href}">
+        ${badge}
+        <span class="module-num">Guide ${m.num}</span>
+        <span class="module-title">${m.title}</span>
+        <span class="module-sub">${m.subtitle || ""}</span>
+      </a>`;
+  }).join("");
+})();
+</script>
+</body>
+</html>

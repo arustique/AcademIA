@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion — AcademIA</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container">
+    <a href="index.html" class="brand"><span class="dot"></span>AcademIA</a>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <span class="eyebrow" id="modeEyebrow">Créer un compte</span>
+    <h2 style="margin-top:10px;" id="modeTitle">Bienvenue dans AcademIA</h2>
+    <form id="authForm">
+      <div class="field">
+        <label for="email">Adresse email</label>
+        <input type="email" id="email" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" required minlength="6" autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn btn--gold btn--block" id="submitBtn">Créer mon compte</button>
+      <div id="msg"></div>
+    </form>
+    <p class="helper" id="switchHelper"></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/config.js"></script>
+<script src="assets/app.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  let mode = params.get("mode") === "login" ? "login" : "signup";
+  const accessCode = sessionStorage.getItem("academia_access_code");
+
+  if (mode === "signup" && !accessCode) {
+    // Pas de code d'accès en mémoire : on ne laisse pas créer de compte directement
+    window.location.href = "access.html";
+  }
+
+  function paintMode() {
+    const eyebrow = document.getElementById("modeEyebrow");
+    const title = document.getElementById("modeTitle");
+    const btn = document.getElementById("submitBtn");
+    const helper = document.getElementById("switchHelper");
+    if (mode === "signup") {
+      eyebrow.textContent = "Créer un compte";
+      title.textContent = "Bienvenue dans AcademIA";
+      btn.textContent = "Créer mon compte";
+      helper.innerHTML = `Déjà un compte ? <a href="auth.html?mode=login">Se connecter</a>`;
+    } else {
+      eyebrow.textContent = "Connexion";
+      title.textContent = "Ravi de vous revoir";
+      btn.textContent = "Se connecter";
+      helper.innerHTML = `Pas encore de compte ? <a href="access.html">Entrer un code d'accès</a>`;
+    }
+  }
+  paintMode();
+
+  document.getElementById("authForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const btn = document.getElementById("submitBtn");
+    const msg = document.getElementById("msg");
+    btn.disabled = true;
+    msg.innerHTML = "";
+
+    if (mode === "signup") {
+      const { data, error } = await sb.auth.signUp({
+        email, password,
+        options: { data: { access_code: accessCode } },
+      });
+      if (error) {
+        msg.innerHTML = `<div class="form-msg form-msg--error">${error.message}</div>`;
+        btn.disabled = false;
+        return;
+      }
+      await sb.rpc("increment_access_code_use", { code_input: accessCode });
+      sessionStorage.removeItem("academia_access_code");
+      msg.innerHTML = `<div class="form-msg form-msg--ok">Compte créé. Redirection...</div>`;
+      setTimeout(() => (window.location.href = "dashboard.html"), 900);
+    } else {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        msg.innerHTML = `<div class="form-msg form-msg--error">${error.message}</div>`;
+        btn.disabled = false;
+        return;
+      }
+      window.location.href = "dashboard.html";
+    }
+  });
+</script>
+</body>
+</html>

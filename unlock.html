@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Débloquer l'accès complet — AcademIA</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container">
+    <a href="dashboard.html" class="brand"><span class="dot"></span>AcademIA</a>
+    <div class="nav-links"><a href="dashboard.html">← Retour</a></div>
+  </div>
+</nav>
+
+<div class="container section" style="max-width:680px;">
+  <div class="paywall">
+    <span class="eyebrow">Accès complet</span>
+    <h2 style="color:#fff;">Débloquez les 15 guides, à vie</h2>
+    <div class="price">10 000 FCFA</div>
+    <ul>
+      <li>Les 13 guides restants s'ajoutent aux 2 déjà offerts</li>
+      <li>Paiement sécurisé par Chariow (Mobile Money ou carte)</li>
+      <li>Déblocage automatique dès la confirmation du paiement</li>
+    </ul>
+    <a id="payBtn" href="#" class="btn btn--gold">Payer avec Chariow</a>
+    <p id="pendingMsg" style="display:none;color:rgba(255,255,255,.7);margin-top:18px;font-size:.9rem;">
+      Paiement en cours de vérification — cette page se met à jour automatiquement dès la confirmation.
+    </p>
+  </div>
+</div>
+
+<footer class="footer"><div class="container">AcademIA — un programme de Rustique AKODOGBO.</div></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/config.js"></script>
+<script src="assets/app.js"></script>
+<script>
+(async function () {
+  const session = await requireSession();
+  if (!session) return;
+
+  const profile = await getProfile(session.user.id);
+  if (profile?.is_paid) { window.location.href = "dashboard.html"; return; }
+
+  // Construit le lien Chariow avec l'identifiant utilisateur en métadonnée,
+  // et une redirection de retour vers cette page après paiement.
+  const redirect = encodeURIComponent(location.origin + location.pathname + "?paid=1");
+  const payUrl = `${window.ACADEMIA_CONFIG.CHARIOW_CHECKOUT_URL}`
+    + `?custom_metadata[user_id]=${session.user.id}`
+    + `&redirect_url=${redirect}`;
+  document.getElementById("payBtn").href = payUrl;
+
+  // Retour depuis Chariow : on affiche un message et on vérifie périodiquement
+  // si le webhook a bien débloqué le compte (jusqu'à 60 secondes).
+  if (new URLSearchParams(location.search).get("paid")) {
+    document.getElementById("pendingMsg").style.display = "block";
+    let tries = 0;
+    const poll = setInterval(async () => {
+      tries++;
+      const p = await getProfile(session.user.id);
+      if (p?.is_paid) {
+        clearInterval(poll);
+        window.location.href = "dashboard.html";
+      }
+      if (tries > 20) clearInterval(poll); // 20 x 3s = 60s
+    }, 3000);
+  }
+})();
+</script>
+</body>
+</html>
