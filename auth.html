@@ -19,6 +19,10 @@
     <span class="eyebrow" id="modeEyebrow">Créer un compte</span>
     <h2 style="margin-top:10px;" id="modeTitle">Bienvenue dans AcademIA</h2>
     <form id="authForm">
+      <div class="field" id="firstNameField">
+        <label for="firstName">Prénom</label>
+        <input type="text" id="firstName" autocomplete="given-name">
+      </div>
       <div class="field">
         <label for="email">Adresse email</label>
         <input type="email" id="email" required autocomplete="email">
@@ -53,16 +57,22 @@
     const title = document.getElementById("modeTitle");
     const btn = document.getElementById("submitBtn");
     const helper = document.getElementById("switchHelper");
+    const firstNameField = document.getElementById("firstNameField");
+    const firstNameInput = document.getElementById("firstName");
     if (mode === "signup") {
       eyebrow.textContent = "Créer un compte";
       title.textContent = "Bienvenue dans AcademIA";
       btn.textContent = "Créer mon compte";
       helper.innerHTML = `Déjà un compte ? <a href="auth.html?mode=login">Se connecter</a>`;
+      firstNameField.style.display = "block";
+      firstNameInput.required = true;
     } else {
       eyebrow.textContent = "Connexion";
       title.textContent = "Ravi de vous revoir";
       btn.textContent = "Se connecter";
       helper.innerHTML = `Pas encore de compte ? <a href="access.html">Entrer un code d'accès</a>`;
+      firstNameField.style.display = "none";
+      firstNameInput.required = false;
     }
   }
   paintMode();
@@ -77,9 +87,10 @@
     msg.innerHTML = "";
 
     if (mode === "signup") {
+      const firstName = document.getElementById("firstName").value.trim();
       const { data, error } = await sb.auth.signUp({
         email, password,
-        options: { data: { access_code: accessCode } },
+        options: { data: { access_code: accessCode, first_name: firstName } },
       });
       if (error) {
         msg.innerHTML = `<div class="form-msg form-msg--error">${error.message}</div>`;
